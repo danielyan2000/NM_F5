@@ -2,3 +2,5 @@
 collections:
   - name: f5networks.f5_modules
     version: "==1.27.1"
+  - name: cisco.aci
+    version: "==2.8.0"
