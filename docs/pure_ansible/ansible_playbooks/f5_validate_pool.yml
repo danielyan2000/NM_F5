@@ -1,9 +1,11 @@
-
 ---
 - name: Validate F5 Pool Information
   hosts: f5
   connection: local
   gather_facts: false
+
+  collections:
+    - f5networks.f5_modules
 
   vars:
     f5_user: "{{ lookup('env', 'F5_USER') | default('admin') }}"
@@ -13,7 +15,7 @@
 
   tasks:
     - name: Get pool information
-      bigip_pool_info:
+      f5_bigip_pool_info:
         server: "{{ f5_server }}"
         user: "{{ f5_user }}"
         password: "{{ f5_password }}"
