@@ -1,1 +1,42 @@
 
+---
+- name: Validate F5 Pool Information
+  hosts: f5
+  connection: local
+  gather_facts: false
+
+  vars:
+    f5_user: "{{ lookup('env', 'F5_USER') | default('admin') }}"
+    f5_password: "{{ lookup('env', 'F5_PASSWORD') | default('admin') }}"
+    f5_server: "{{ inventory_hostname }}"
+    pool_name: "my_pool"  # Change this to your pool name
+
+  tasks:
+    - name: Get pool information
+      bigip_pool_info:
+        server: "{{ f5_server }}"
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        name: "{{ pool_name }}"
+      register: pool_info
+
+    - name: Show pool info
+      debug:
+        var: pool_info
+
+    - name: Validate pool exists
+      assert:
+        that:
+          - pool_info.pools is defined
+          - pool_info.pools | length > 0
+        fail_msg: "Pool {{ pool_name }} does not exist on F5 device."
+        success_msg: "Pool {{ pool_name }} exists on F5 device."
+
+    - name: Validate all pool members are up
+      assert:
+        that:
+          - pool_info.pools[0].members is defined
+          - pool_info.pools[0].members | selectattr('state', 'equalto', 'up') | list | length == pool_info.pools[0].members | length
+        fail_msg: "Not all pool members are up."
+        success_msg: "All pool members are up."
