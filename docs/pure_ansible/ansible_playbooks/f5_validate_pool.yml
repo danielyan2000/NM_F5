@@ -5,6 +5,8 @@
   gather_facts: false
 
   vars:
+    f5_user: "{{ username }}"
+    f5_password: "{{ password }}"
     f5_server: "{{ inventory_hostname }}"
     pool_name: "Test_Pool"
     node_name: "Server_Node4"
@@ -16,8 +18,6 @@
       ansible.builtin.uri:
         url: "https://{{ f5_server }}/mgmt/tm/ltm/node"
         method: GET
-        user: "{{ f5_user }}"
-        password: "{{ f5_password }}"
         validate_certs: false
         return_content: yes
       register: node_list
