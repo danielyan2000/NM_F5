@@ -5,8 +5,8 @@
   gather_facts: false
 
   vars:
-    f5_user: "{{ username }}"
-    f5_password: "{{ password }}"
+    f5_user: "{{ api_username }}"
+    f5_password: "{{ api_password }}"
     f5_server: "{{ inventory_hostname }}"
     pool_name: "Test_Pool"
     node_name: "Server_Node4"
