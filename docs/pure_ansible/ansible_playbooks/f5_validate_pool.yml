@@ -16,7 +16,7 @@
   tasks:
     - name: Show injected credential variables
       debug:
-        msg: "f5_user={{ f5_user }}, f5_password={{ f5_password | default('NOT SET') }}"
+        msg: "f5_user={{ f5_user | default('NOT SET') }}, f5_password={{ f5_password | default('NOT SET') }}"
         
     - name: Get node list from F5 REST API
       ansible.builtin.uri:
