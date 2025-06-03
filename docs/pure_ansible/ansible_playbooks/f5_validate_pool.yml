@@ -7,10 +7,11 @@
   vars:
     f5_user: "{{ username }}"
     f5_password: "{{ password }}"
-    #pool_name: "Test_Pool"
-    #node_name: "Server_Node4"
-    #node_address: "10.200.0.102"
-    #member_port: 443
+    f5_server: "{{ inventory_hostname }}"
+    pool_name: "Test_Pool"
+    node_name: "Server_Node4"
+    node_address: "10.200.0.102"
+    member_port: 443
 
   tasks:
     - name: Show injected credential variables
