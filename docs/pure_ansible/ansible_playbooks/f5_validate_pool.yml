@@ -14,6 +14,10 @@
     member_port: 443
 
   tasks:
+    - name: Show injected credential variables
+      debug:
+        msg: "f5_user={{ f5_user }}, f5_password={{ f5_password | default('NOT SET') }}"
+        
     - name: Get node list from F5 REST API
       ansible.builtin.uri:
         url: "https://{{ f5_server }}/mgmt/tm/ltm/node"
