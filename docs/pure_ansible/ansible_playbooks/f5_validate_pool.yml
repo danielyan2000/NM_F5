@@ -8,8 +8,8 @@
     #f5_user: "{{ ansible_username }}"
     #f5_password: "{{ ansible_password }}"
     ansible_user: "{{ f5_user }}"
-    ansible_password: "{{ f5_password }}"
-    f5_server: "{{ inventory_hostname }}"
+    ansible_user: "{{ my_credential_username }}"
+    ansible_password: "{{ my_credential_password }}"
     pool_name: "Test_Pool"
     node_name: "Server_Node4"
     node_address: "10.200.0.102"
@@ -18,7 +18,7 @@
   tasks:
     - name: Show injected credential variables
       debug:
-        msg: "f5_user={{ f5_user | default('NOT SET') }}, f5_password={{ f5_password | default('NOT SET') }}"
+        msg: "f5_user={{ ansible_user | default('NOT SET') }}, f5_password={{ ansible_password | default('NOT SET') }}"
         
     - name: Get node list from F5 REST API
       ansible.builtin.uri:
