@@ -5,11 +5,8 @@
   gather_facts: false
 
   vars:
-    #f5_user: "{{ ansible_username }}"
-    #f5_password: "{{ ansible_password }}"
-    ansible_user: "{{ f5_user }}"
-    ansible_user: "{{ my_credential_username }}"
-    ansible_password: "{{ my_credential_password }}"
+    f5_user: "{{ username }}"
+    f5_password: "{{ password }}"
     pool_name: "Test_Pool"
     node_name: "Server_Node4"
     node_address: "10.200.0.102"
