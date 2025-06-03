@@ -1,44 +1,74 @@
 ---
-- name: Validate F5 Pool Information
+- name: Get F5 pool info and members using REST API
   hosts: f5
-  connection: local
   gather_facts: false
 
-  collections:
-    - f5networks.f5_modules
-
   vars:
-    f5_user: "{{ lookup('env', 'F5_USER') | default('admin') }}"
-    f5_password: "{{ lookup('env', 'F5_PASSWORD') | default('admin') }}"
     f5_server: "{{ inventory_hostname }}"
-    pool_name: "my_pool"  # Change this to your pool name
+    pool_name: "Test_Pool"
+    node_name: "Server_Node3"
+    node_address: "10.200.0.101"
+    member_port: 443
 
   tasks:
-    - name: Get pool information
-      f5_bigip_pool_info:
-        server: "{{ f5_server }}"
+    - name: Get pool info from F5 REST API
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/pool/{{ pool_name }}"
+        method: GET
         user: "{{ f5_user }}"
         password: "{{ f5_password }}"
         validate_certs: false
-        name: "{{ pool_name }}"
+        return_content: yes
       register: pool_info
 
     - name: Show pool info
       debug:
-        var: pool_info
+        var: pool_info.json
 
-    - name: Validate pool exists
-      assert:
-        that:
-          - pool_info.pools is defined
-          - pool_info.pools | length > 0
-        fail_msg: "Pool {{ pool_name }} does not exist on F5 device."
-        success_msg: "Pool {{ pool_name }} exists on F5 device."
+    - name: Get pool member info from F5 REST API
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/pool/{{ pool_name }}/members"
+        method: GET
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        return_content: yes
+      register: pool_members
 
-    - name: Validate all pool members are up
-      assert:
-        that:
-          - pool_info.pools[0].members is defined
-          - pool_info.pools[0].members | selectattr('state', 'equalto', 'up') | list | length == pool_info.pools[0].members | length
-        fail_msg: "Not all pool members are up."
-        success_msg: "All pool members are up."
+    - name: Show pool member info
+      debug:
+        var: pool_members.json['items']
+
+    - name: Create node {{ node_name }} if it does not exist
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/node"
+        method: POST
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ node_name }}"
+          address: "{{ node_address }}"
+      register: add_node_result
+      failed_when: add_node_result.status not in [200, 201, 409]
+
+    - name: Add new node {{ node_name }}:{{ member_port }} to {{ pool_name }}
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/pool/{{ pool_name }}/members"
+        method: POST
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ node_name }}:{{ member_port }}"
+      register: add_member_result
+
+    - name: Show result of adding new member
+      debug:
+        var: add_member_result.json
