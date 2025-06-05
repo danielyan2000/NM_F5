@@ -51,7 +51,7 @@
     - name: Send email
       community.general.mail:
         host: eesrelay.gov.on.ca
-        port: 22
+        port: 25
         to:
           - <daniel.yan@ontario.ca>
         cc: []
