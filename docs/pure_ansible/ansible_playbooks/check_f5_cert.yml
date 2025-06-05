@@ -61,4 +61,4 @@
         subtype: plain
         body: Here's the report from f5.
         attach:
-          - "{{ _tempdir.path }}/cert_list.csv"
+          - "./cert_list.csv"
