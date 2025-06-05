@@ -8,9 +8,9 @@
     f5_host: "{{ inventory_hostname }}"
     f5_user: "{{ username }}"
     f5_password: "{{ password }}"
-    
+
   tasks:
-    - name: List all certificates in Common partition
+    - name: Get all certificate names
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/sys/crypto/cert"
         method: GET
@@ -21,7 +21,33 @@
           Content-Type: "application/json"
       register: all_certs
 
-    - name: Show all certificate names
-      debug:
-        var: all_certs.json['items']
+    - name: Get full details for each cert
+      uri:
+        url: "https://{{ f5_host }}/mgmt/tm/sys/crypto/cert/~Common~{{ item.name | regex_replace('^/Common/', '') | urlencode }}"
+        method: GET
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+      loop: "{{ all_certs.json['items'] }}"
+      register: cert_details
 
+    - name: Prepare cert list for CSV (as string)
+      set_fact:
+        cert_csv_string: |
+          name,issuer,expiration
+          {% for cert in cert_details.results %}
+          "{{ cert.json.name | default('') }}","{{ cert.json.apiRawValues.issuer | default('') }}","{{ cert.json.apiRawValues.expiration | default('') }}"
+          {% endfor %}
+
+    - name: Write cert details to CSV (no extra collection needed)
+      copy:
+        dest: ./cert_list.csv
+        content: "{{ cert_csv_string | trim }}"
+
+    - name: Fetch CSV file to controller
+      fetch:
+        src: ./cert_list.csv
+        dest: ./  # This will place it in the job's artifacts directory
+        flat: yes
