@@ -62,9 +62,3 @@
         body: Here's the report from f5.
         attach:
           - "{{ _tempdir.path }}/cert_list.csv"
-
-  always:
-    - name: Remove temporary directory
-      ansible.builtin.file:
-        path: "{{ _tempdir.path }}"
-        state: absent
