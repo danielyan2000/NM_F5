@@ -45,9 +45,26 @@
       copy:
         dest: ./cert_list.csv
         content: "{{ cert_csv_string | trim }}"
+        mode: "0644"
 
-    - name: Fetch CSV file to controller
-      fetch:
-        src: "{{ playbook_dir }}/cert_list.csv"
-        dest: ./  # This will place it in the job's artifacts directory
-        flat: yes
+    # https://docs.ansible.com/ansible/latest/collections/community/general/mail_module.html
+    - name: Send email
+        community.general.mail:
+          host: eesrelay.gov.on.ca
+          port: 22
+          to:
+            - <daniel.yan@ontario.ca>
+          cc: []
+          bcc: []
+          from: ansible@ontario.ca
+          subject: Report on Certificates
+          subtype: plain
+          body: Here's the report from f5.
+          attach:
+            - "{{ _tempdir.path }}/cert_list.csv"
+
+  always:
+    - name: Remove temporary directory
+        ansible.builtin.file:
+          path: "{{ _tempdir.path }}"
+          state: absent
