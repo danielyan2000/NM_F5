@@ -1,1 +1,27 @@
+---
+- name: List all certificates in Common partition
+  hosts: f5
+  connection: local
+  gather_facts: false
+
+  vars:
+    f5_host: "{{ inventory_hostname }}"
+    f5_user: "{{ username }}"
+    f5_password: "{{ password }}"
+    
+  tasks:
+    - name: List all certificates in Common partition
+      uri:
+        url: "https://{{ f5_host }}/mgmt/tm/sys/crypto/cert"
+        method: GET
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+      register: all_certs
+
+    - name: Show all certificate names
+      debug:
+        var: all_certs.json['items']
 
