@@ -48,6 +48,6 @@
 
     - name: Fetch CSV file to controller
       fetch:
-        src: ./cert_list.csv
+        src: "{{ playbook_dir }}/cert_list.csv"
         dest: ./  # This will place it in the job's artifacts directory
         flat: yes
