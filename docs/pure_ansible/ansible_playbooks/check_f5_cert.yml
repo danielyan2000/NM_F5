@@ -49,22 +49,22 @@
 
     # https://docs.ansible.com/ansible/latest/collections/community/general/mail_module.html
     - name: Send email
-        community.general.mail:
-          host: eesrelay.gov.on.ca
-          port: 22
-          to:
-            - <daniel.yan@ontario.ca>
-          cc: []
-          bcc: []
-          from: ansible@ontario.ca
-          subject: Report on Certificates
-          subtype: plain
-          body: Here's the report from f5.
-          attach:
-            - "{{ _tempdir.path }}/cert_list.csv"
+      community.general.mail:
+        host: eesrelay.gov.on.ca
+        port: 22
+        to:
+          - <daniel.yan@ontario.ca>
+        cc: []
+        bcc: []
+        from: ansible@ontario.ca
+        subject: Report on Certificates
+        subtype: plain
+        body: Here's the report from f5.
+        attach:
+          - "{{ _tempdir.path }}/cert_list.csv"
 
   always:
     - name: Remove temporary directory
-        ansible.builtin.file:
-          path: "{{ _tempdir.path }}"
-          state: absent
+      ansible.builtin.file:
+        path: "{{ _tempdir.path }}"
+        state: absent
