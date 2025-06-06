@@ -57,8 +57,13 @@
         cc: []
         bcc: []
         from: ansible@ontario.ca
-        subject: Report on Certificates
+        subject: Report on F5 Certificates
         subtype: plain
-        body: Here's the report from f5.
+        body: Here's the report from f5 {{ inventory_hostname }}.
         attach:
           - "./cert_list.csv"
+      register: _email
+      until: _email is succeeded
+      retries: 3
+      delay: 5
+
