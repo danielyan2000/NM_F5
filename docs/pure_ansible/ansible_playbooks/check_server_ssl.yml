@@ -58,3 +58,22 @@
           {% endfor %}
       run_once: true
       delegate_to: localhost
+
+    - name: Send email
+      community.general.mail:
+        host: eesrelay.gov.on.ca
+        port: 25
+        to:
+          - <daniel.yan@ontario.ca>
+        cc: []
+        bcc: []
+        from: ansible@ontario.ca
+        subject: Report on F5 Certificates
+        subtype: plain
+        body: Here's the report from f5 {{ inventory_hostname }}.
+        attach:
+          - "./all_hosts_cert_list.csv"
+      register: _email
+      until: _email is succeeded
+      retries: 3
+      delay: 5
