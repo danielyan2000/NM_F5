@@ -64,15 +64,15 @@
         host: eesrelay.gov.on.ca
         port: 25
         to:
-          - <daniel.yan@ontario.ca>
-        cc: []
-        bcc: []
+          - daniel.yan@ontario.ca
         from: ansible@ontario.ca
         subject: Report on F5 Certificates
         subtype: plain
-        body: Here's the report from f5 {{ inventory_hostname }}.
+        body: Here's the report from all F5 devices.
         attach:
           - "./all_hosts_cert_list.csv"
+      run_once: true
+      delegate_to: localhost
       register: _email
       until: _email is succeeded
       retries: 3
