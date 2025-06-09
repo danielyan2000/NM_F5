@@ -41,7 +41,7 @@
       set_fact:
         all_hosts_cert_facts: "{{ all_hosts_cert_facts | combine({item: hostvars[item].host_cert_facts}) }}"
       loop: "{{ groups['f5'] }}"
-      when: "host_cert_facts in hostvars[item]"
+      when: hostvars[item]['host_cert_facts'] is defined
       run_once: true
       delegate_to: localhost
 
