@@ -1,1 +1,60 @@
+---
+- name: Gather certificate facts from all F5 hosts
+  hosts: f5
+  connection: local
+  gather_facts: false
 
+  vars:
+    f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+    f5_user: "{{ f5_user_daniel }}"
+    f5_password: "{{ f5_password_daniel }}"
+
+  tasks:
+    - name: Get all certificate details
+      uri:
+        url: "https://{{ f5_host }}/mgmt/tm/sys/file/ssl-cert"
+        method: GET
+        user: "{{ f5_user_daniel }}"
+        password: "{{ f5_password_daniel }}"
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+      register: all_certs
+
+    - name: Set host_cert_facts for aggregation
+      set_fact:
+        host_cert_facts: "{{ all_certs.json['items'] }}"
+      delegate_facts: true
+
+- name: Aggregate and write all hosts' cert facts to CSV
+  hosts: all
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Initialize all_hosts_cert_facts
+      set_fact:
+        all_hosts_cert_facts: {}
+      run_once: true
+      delegate_to: localhost
+
+    - name: Add host_cert_facts for each host
+      set_fact:
+        all_hosts_cert_facts: "{{ all_hosts_cert_facts | combine({item: hostvars[item].host_cert_facts}) }}"
+      loop: "{{ groups['f5'] }}"
+      when: "host_cert_facts in hostvars[item]"
+      run_once: true
+      delegate_to: localhost
+
+    - name: Write combined CSV (on localhost)
+      copy:
+        dest: ./all_hosts_cert_list.csv
+        content: |
+          Host,Cert Name,Issuer,Expiration
+          {% for host, certs in all_hosts_cert_facts.items() %}
+          {% set desc = hostvars[host].description | default(host) %}
+          {% for cert in certs %}
+          "{{ desc }}","{{ cert.name | default('') }}","{{ cert.issuer | default('') }}","{{ cert.expirationString | default('') }}"
+          {% endfor %}
+          {% endfor %}
+      run_once: true
+      delegate_to: localhost
