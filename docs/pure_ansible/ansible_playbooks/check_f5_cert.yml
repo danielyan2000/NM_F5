@@ -36,9 +36,9 @@
     - name: Prepare cert list for CSV (as string)
       set_fact:
         cert_csv_string: |
-          Host,Name,Issuer,Expiration
+          Host,Cert Name,Expiration,Issuer
           {% for cert in cert_details.results %}
-          "{{ hostvars[inventory_hostname].description | default(inventory_hostname) }}","{{ cert.json.name | default('') }}","{{ cert.json.apiRawValues.issuer | default('') }}","{{ cert.json.apiRawValues.expiration | default('') }}"
+          "{{ hostvars[inventory_hostname].description | default(inventory_hostname) }}","{{ cert.json.name | default('') }}","{{ cert.json.apiRawValues.expiration | default('') }}","{{ cert.json.apiRawValues.issuer | default('') }}"
           {% endfor %}
 
     - name: Write cert details to CSV (no extra collection needed)
