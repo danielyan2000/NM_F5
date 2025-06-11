@@ -70,14 +70,18 @@
       copy:
         dest: ./all_hosts_irules_list.csv
         content: |
-          Host,Name,Partition,API Link,Definition
+          Host,Name,Partition,API Link
           {% for host, irules in all_hosts_irules.items() %}
 
           # ========== {{ hostvars[host].description | default(host) }} ==========
 
           {% set desc = hostvars[host].description | default(host) %}
           {% for irule in irules %}
-          "{{ desc }}","{{ irule.name }}","{{ irule.partition }}","{{ irule.selfLink | default('') }}","{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
+          "{{ desc }}","{{ irule.name }}","{{ irule.partition }}","{{ irule.selfLink | default('') }}"
+          **Definition**:
+          ,"{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
+
+          
           {% endfor %}
           {% endfor %}
 
