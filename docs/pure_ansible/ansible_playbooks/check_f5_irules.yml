@@ -3,7 +3,8 @@
   hosts: f5
   connection: local
   gather_facts: false
-  tags: Gather_iRules
+  tags: 
+    - Gather_iRules
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
@@ -108,7 +109,8 @@
   hosts: f5
   connection: local
   gather_facts: false
-  tags: update_irules
+  tags:
+    - update_irules
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
