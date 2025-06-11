@@ -53,7 +53,7 @@
 #      delegate_facts: true
 
 - name: Aggregate and write all hosts' iRules to CSV
-  hosts: f5
+  hosts: localhost
   gather_facts: false
   tasks:
     - name: Initialize all_hosts_irules
