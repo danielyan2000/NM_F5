@@ -17,8 +17,8 @@
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/ltm/rule/~{{ irule_partition }}~{{ irule_name }}"
         method: GET
-        user: "{{ f5_user }}"
-        password: "{{ f5_password }}"
+        user: "{{ f5_user_daniel }}"
+        password: "{{ f5_password_daniel }}"
         validate_certs: no
         headers:
           Content-Type: "application/json"
@@ -29,8 +29,8 @@
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/ltm/rule"
         method: GET
-        user: "{{ f5_user }}"
-        password: "{{ f5_password }}"
+        user: "{{ f5_user_daniel }}"
+        password: "{{ f5_password_daniel }}"
         validate_certs: no
         headers:
           Content-Type: "application/json"
@@ -127,8 +127,8 @@
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/ltm/rule/~{{ item.partition }}~{{ item.name }}"
         method: PUT
-        user: "{{ f5_user }}"
-        password: "{{ f5_password }}"
+        user: "{{ f5_user_daniel }}"
+        password: "{{ f5_password_daniel }}"
         validate_certs: no
         headers:
           Content-Type: "application/json"
