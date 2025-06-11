@@ -143,4 +143,5 @@
     - name: Report iRule update results
       debug:
         var: irule_update.results
+      
 
