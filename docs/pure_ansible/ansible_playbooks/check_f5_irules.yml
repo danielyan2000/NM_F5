@@ -3,8 +3,6 @@
   hosts: f5
   connection: local
   gather_facts: false
-  tags: 
-    - Gather_iRules
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
@@ -101,7 +99,8 @@
       until: _email is succeeded
       retries: 3
       delay: 5
-
+  tags: 
+    - Gather_iRules
 
 # --- Section for updating or creating iRules ---
 
@@ -109,8 +108,6 @@
   hosts: f5
   connection: local
   gather_facts: false
-  tags:
-    - update_irules
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
@@ -146,5 +143,7 @@
     - name: Report iRule update results
       debug:
         var: irule_update.results
+  tags:
+    - update_irules
       
 
