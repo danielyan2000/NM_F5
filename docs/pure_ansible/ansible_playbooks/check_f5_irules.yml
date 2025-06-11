@@ -1,1 +1,146 @@
+---
+- name: Gather iRules from F5 devices
+  hosts: f5
+  connection: local
+  gather_facts: false
+
+  vars:
+    f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+    f5_user: "{{ f5_user_daniel }}"
+    f5_password: "{{ f5_password_daniel }}"
+    irule_partition: "Common"
+    irules_response: {}
+    irule_name: ""   # Can be set via -e "irule_name=your_rule"
+
+  tasks:
+    - name: Get a specific iRule if irule_name is specified and not empty
+      uri:
+        url: "https://{{ f5_host }}/mgmt/tm/ltm/rule/~{{ irule_partition }}~{{ irule_name }}"
+        method: GET
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+      register: irule_specific_response
+      when: irule_name | length > 0
+
+    - name: Get all iRules if irule_name is not specified or empty
+      uri:
+        url: "https://{{ f5_host }}/mgmt/tm/ltm/rule"
+        method: GET
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+      register: irules_all_response
+      when: irule_name | length == 0
+
+    - name: Set irules_response to the correct result
+      set_fact:
+        irules_response: "{{ irule_specific_response if (irule_name | length > 0) else irules_all_response }}"
+    
+    - name: Set host_irules for aggregation (always a list of dicts)
+      set_fact:
+        host_irules: >-
+          {{ [irules_response.json] if (irules_response is defined and 'json' in irules_response and irule_name | length > 0 and irules_response.json is mapping) else (irules_response.json['items'] if (irules_response is defined and 'json' in irules_response and irules_response.json['items'] is defined) else []) }}
+      delegate_facts: true
+
+#    - name: Set host_irules for aggregation (always a list of dicts)
+#      set_fact:
+#        host_irules: "{{ [irules_response.json | to_nice_json | from_json] if (irule_name | length > 0) else (irules_response.json['items'] | default([])) }}"
+#      delegate_facts: true
+
+- name: Aggregate and write all hosts' iRules to CSV
+  hosts: f5
+  gather_facts: false
+  tasks:
+    - name: Initialize all_hosts_irules
+      set_fact:
+        all_hosts_irules: {}
+
+    - name: Add host_irules for each host
+      set_fact:
+        all_hosts_irules: "{{ all_hosts_irules | combine({item: hostvars[item].host_irules}) }}"
+      loop: "{{ groups['f5'] }}"
+      when: hostvars[item]['host_irules'] is defined
+
+    - name: Write combined CSV (on localhost)
+      copy:
+        dest: ./all_hosts_irules_list.csv
+        content: |
+          Host,Name,Partition,API Link,Definition
+          {% for host, irules in all_hosts_irules.items() %}
+
+          # ========== {{ hostvars[host].description | default(host) }} ==========
+
+          {% set desc = hostvars[host].description | default(host) %}
+          {% for irule in irules %}
+          "{{ desc }}","{{ irule.name }}","{{ irule.partition }}","{{ irule.selfLink | default('') }}","{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
+          {% endfor %}
+          {% endfor %}
+
+    - name: Send email
+      community.general.mail:
+        host: eesrelay.gov.on.ca
+        port: 25
+        to:
+          - <daniel.yan@ontario.ca>
+        cc: []
+        bcc: []
+        from: ansible@ontario.ca
+        subject: Report on F5 Irules
+        subtype: plain
+        body: Here's the Irules report from f5.
+        attach:
+          - "./all_hosts_irules_list.csv"
+      register: _email
+      until: _email is succeeded
+      retries: 3
+      delay: 5
+
+
+# --- Section for updating or creating iRules ---
+
+- name: Ensure iRules are present/updated as needed
+  hosts: f5
+  connection: local
+  gather_facts: false
+  tags: update_irules
+
+  vars:
+    f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
+    f5_user: "{{ f5_user_daniel }}"
+    f5_password: "{{ f5_password_daniel }}"
+    # Define your desired iRules here (example)
+    desired_irules:
+      - name: "my_new_irule"
+        partition: "Common"
+        apiAnonymous: |
+          when HTTP_REQUEST {
+            log local0. "This is a new iRule"
+          }
+
+  tasks:
+    - name: Ensure desired iRules exist and are up to date
+      uri:
+        url: "https://{{ f5_host }}/mgmt/tm/ltm/rule/~{{ item.partition }}~{{ item.name }}"
+        method: PUT
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: no
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ item.name }}"
+          partition: "{{ item.partition }}"
+          apiAnonymous: "{{ item.apiAnonymous }}"
+      loop: "{{ desired_irules }}"
+      register: irule_update
+
+    - name: Report iRule update results
+      debug:
+        var: irule_update.results
 
