@@ -24,6 +24,7 @@
           Content-Type: "application/json"
       register: irule_specific_response
       when: irule_name | length > 0
+      failed_when: false   # <-- Don't fail the play on 404
 
     - name: Get all iRules if irule_name is not specified or empty
       uri:
@@ -44,7 +45,13 @@
     - name: Set host_irules for aggregation (always a list of dicts)
       set_fact:
         host_irules: >-
-          {{ [irules_response.json] if (irules_response is defined and 'json' in irules_response and irule_name | length > 0 and irules_response.json is mapping) else (irules_response.json['items'] if (irules_response is defined and 'json' in irules_response and irules_response.json['items'] is defined) else []) }}
+          {{ (
+            [] if irules_response is not defined or 'json' not in irules_response else
+            (
+              [irules_response.json] if (irule_name | length > 0 and irules_response.json is mapping and irules_response.json.name is defined) else
+              (irules_response.json['items'] if (irule_name | length == 0 and irules_response.json['items'] is defined and irules_response.json['items'] is iterable) else [])
+            )
+          ) }}
       delegate_facts: true
 
 #    - name: Set host_irules for aggregation (always a list of dicts)
@@ -65,6 +72,10 @@
         all_hosts_irules: "{{ all_hosts_irules | combine({item: hostvars[item].host_irules}) }}"
       loop: "{{ groups['f5'] }}"
       when: hostvars[item]['host_irules'] is defined
+
+    - name: Debug all_hosts_irules before CSV
+      debug:
+        var: all_hosts_irules
 
     - name: Write combined CSV (on localhost)
       copy:
@@ -104,7 +115,7 @@
       retries: 3
       delay: 5
   tags: 
-    - Gather_iRules
+    - gather_irules
 
 # --- Section for updating or creating iRules ---
 
