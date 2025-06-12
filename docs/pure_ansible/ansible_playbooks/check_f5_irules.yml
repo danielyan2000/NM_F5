@@ -6,8 +6,8 @@
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
-    f5_user: "{{ f5_user_daniel }}"
-    f5_password: "{{ f5_password_daniel }}"
+    f5_user: "{{ f5_user }}"
+    f5_password: "{{ f5_password }}"
     irule_partition: "Common"
     irules_response: {}
     irule_name: ""   # Can be set via -e "irule_name=your_rule"
@@ -17,8 +17,8 @@
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/ltm/rule/~{{ irule_partition }}~{{ irule_name }}"
         method: GET
-        user: "{{ f5_user_daniel }}"
-        password: "{{ f5_password_daniel }}"
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
         validate_certs: no
         headers:
           Content-Type: "application/json"
@@ -30,8 +30,8 @@
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/ltm/rule"
         method: GET
-        user: "{{ f5_user_daniel }}"
-        password: "{{ f5_password_daniel }}"
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
         validate_certs: no
         headers:
           Content-Type: "application/json"
@@ -130,8 +130,8 @@
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
-    f5_user: "{{ f5_user_daniel }}"
-    f5_password: "{{ f5_password_daniel }}"
+    f5_user: "{{ f5_user }}"
+    f5_password: "{{ f5_password }}"
     # Define your desired iRules here (example)
     desired_irules:
       - name: "my_new_irule"
@@ -146,8 +146,8 @@
       uri:
         url: "https://{{ f5_host }}/mgmt/tm/ltm/rule/~{{ item.partition }}~{{ item.name }}"
         method: PUT
-        user: "{{ f5_user_daniel }}"
-        password: "{{ f5_password_daniel }}"
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
         validate_certs: no
         headers:
           Content-Type: "application/json"
