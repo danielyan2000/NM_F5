@@ -87,13 +87,17 @@
           # ========== {{ hostvars[host].description | default(host) }} ==========
 
           {% set desc = hostvars[host].description | default(host) %}
+          {% if irules|length == 0 %}
+          "{{ desc }}",NO MATCH,"","","No iRule named '{{ irule_name }}' found on this F5"
+          {% else %}
           {% for irule in irules %}
-          "{{ desc }}","{{ irule.name }}","{{ irule.partition }}","{{ irule.selfLink | default('') }}"
-          **Definition**:
+          "{{ desc }}","{{ irule.name }}","{{ irule.partition }}","{{ irule.selfLink | default('') }}","{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
+            **Definition**:
           ,"{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
-
-          
+ 
+  
           {% endfor %}
+          {% endif %}
           {% endfor %}
 
     - name: Send email
