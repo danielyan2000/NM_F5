@@ -6,8 +6,10 @@
 
   vars:
     f5_host: "{{ inventory_hostname }}"
-    f5_user: "{{ username }}"
-    f5_password: "{{ password }}"
+    f5_user: "{{ ansible_user }}"
+    f5_password: "{{ ansible_password }}"
+#    f5_user: "{{ username }}"
+#    f5_password: "{{ password }}"
 
   tasks:
     - name: Get all certificate names
