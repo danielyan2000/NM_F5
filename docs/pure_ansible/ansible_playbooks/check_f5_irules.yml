@@ -6,8 +6,10 @@
 
   vars:
     f5_host: "{{ hostvars[inventory_hostname].ansible_host | default(inventory_hostname) }}"
-    f5_user: "{{ f5_user }}"
-    f5_password: "{{ f5_password }}"
+    f5_user: "{{ ansible_user }}"
+    f5_password: "{{ ansible_password }}"
+#    f5_user: "{{ f5_user }}"
+#    f5_password: "{{ f5_password }}"
     irule_partition: "Common"
     irules_response: {}
     irule_name: ""   # Can be set via -e "irule_name=your_rule"
