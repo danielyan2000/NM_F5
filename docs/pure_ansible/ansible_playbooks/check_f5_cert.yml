@@ -12,6 +12,10 @@
 #    f5_password: "{{ password }}"
 
   tasks:
+    - name: Show injected credential variables
+      debug:
+        msg: "ansible_user={{ ansible_user | default('NOT SET') }}, ansible_password={{ ansible_password | default('NOT SET') }}"
+      
     - name: Debug f5 credentials (for troubleshooting only)
       debug:
         msg: "f5_user: {{ ansible_user }}, f5_password: {{ ansible_password }}"
