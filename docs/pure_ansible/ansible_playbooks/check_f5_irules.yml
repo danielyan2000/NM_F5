@@ -95,7 +95,7 @@
           {% for irule in irules %}
           "{{ desc }}","{{ irule.name }}","{{ irule.partition }}","{{ irule.selfLink | default('') }}"
             **Definition**:
-          ,"{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
+          "{{ irule.apiAnonymous | default('') | replace('\r\n', '\\n') | replace('\n', '\\n') | replace('\"', '\"\"') }}"
  
   
           {% endfor %}
