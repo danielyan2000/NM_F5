@@ -1,0 +1,34 @@
+---
+- name: Collect SSL profiles info from F5 BIG-IP
+  hosts: f5
+  connection: local
+  gather_facts: false
+
+  vars:
+    f5_host: "{{ inventory_hostname }}"
+    f5_user: "admin"
+    f5_password: "bigiptest!!"
+    
+
+  tasks:
+    - name: Show F5 connection variables
+      debug:
+        msg: "host={{ f5_host }}, user={{ f5_user }}, password={{ f5_password }}"
+
+    - name: Collect SSL profiles info from F5
+      f5networks.f5_modules.bigip_device_info:
+        provider:
+          server: "{{ f5_host }}"
+          user: "{{ f5_user }}"
+          server_port: 443
+          password: "{{ f5_password }}"
+          validate_certs: no
+          no_f5_teem: true
+        gather_subset:
+          - profiles
+      register: ssl_info
+
+    - name: Display F5 SSL profiles info
+      debug:
+        var: ssl_info
+

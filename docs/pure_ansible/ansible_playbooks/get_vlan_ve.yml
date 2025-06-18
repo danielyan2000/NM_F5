@@ -16,8 +16,10 @@
       action: "get"
       uri: "/api/node/mo/uni/tn-{{tenant_name}}/GraphInst_C-[uni/tn-{{tenant_name}}/brc-{{contract_name}}]-G-[uni/tn-{{tenant_name}}/AbsGraph-{{SGtemplate_name}}]-S-[uni/tn-{{tenant_name}}]/NodeInst-N1.json?query-target=subtree&target-subtree-class=vnsEPgDef"
       host: "{{inventory_hostname}}"
-      username: '{{ lookup("env", "ANSIBLE_NET_USERNAME") }}'
-      password: '{{ lookup("env", "ANSIBLE_NET_PASSWORD") }}'
+      username: admin
+      password: bigiptest!!
+      #username: '{{ lookup("env", "ANSIBLE_NET_USERNAME") }}'
+      #password: '{{ lookup("env", "ANSIBLE_NET_PASSWORD") }}'
       validate_certs: "false"
     register: vlans
 

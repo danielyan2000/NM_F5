@@ -1,0 +1,99 @@
+---
+- name: Get F5 pool info and members using REST API
+  hosts: f5
+  connection: local
+  gather_facts: false
+
+  vars:
+    f5_user: "{{ username }}"
+    f5_password: "{{ password }}"
+    f5_server: "{{ inventory_hostname }}"
+    pool_name: "Test_Pool"
+    node_name: "Server_Node4"
+    node_address: "10.200.0.102"
+    member_port: 443
+
+  tasks:
+    - name: Show injected credential variables
+      debug:
+        msg: "f5_user={{ f5_user | default('NOT SET') }}, f5_password={{ f5_password | default('NOT SET') }}"
+        
+    - name: Get node list from F5 REST API
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/node"
+        method: GET
+        validate_certs: false
+        return_content: yes
+      register: node_list
+
+    - name: Check if node with name or address already exists
+      set_fact:
+        node_exists: >-
+          {{
+            (node_list.json['items'] | selectattr('name', 'equalto', node_name) | list | length > 0)
+            or
+            (node_list.json['items'] | selectattr('address', 'equalto', node_address) | list | length > 0)
+          }}
+      when: node_list.json['items'] is defined
+
+    - name: Create node if it does not exist
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/node"
+        method: POST
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ node_name }}"
+          address: "{{ node_address }}"
+      register: add_node_result
+      when: not node_exists
+      failed_when: add_node_result.status not in [200, 201, 409]
+
+    - name: Node already exists, skipping creation
+      debug:
+        msg: "Node with name {{ node_name }} or address {{ node_address }} already exists."
+      when: node_exists
+
+    - name: Get pool member info from F5 REST API
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/pool/{{ pool_name }}/members"
+        method: GET
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        return_content: yes
+      register: pool_members
+
+    - name: Check if pool member already exists
+      set_fact:
+        member_exists: "{{ pool_members.json['items'] | selectattr('name', 'equalto', node_name ~ ':' ~ member_port|string) | list | length > 0 }}"
+      when: pool_members.json['items'] is defined
+
+    - name: Add new node {{ node_name }}:{{ member_port }} to {{ pool_name }}
+      ansible.builtin.uri:
+        url: "https://{{ f5_server }}/mgmt/tm/ltm/pool/{{ pool_name }}/members"
+        method: POST
+        user: "{{ f5_user }}"
+        password: "{{ f5_password }}"
+        validate_certs: false
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ node_name }}:{{ member_port }}"
+      register: add_member_result
+      when: not member_exists
+
+    - name: Pool member already exists, skipping addition
+      debug:
+        msg: "Pool member {{ node_name }}:{{ member_port }} already exists in pool {{ pool_name }}."
+      when: member_exists
+
+    - name: Show result of adding new member
+      debug:
+        var: add_member_result.json
+      when: add_member_result is defined
