@@ -29,7 +29,8 @@
 
     - name: Get full details for each cert
       uri:
-        url: "https://{{ f5_host }}/mgmt/tm/sys/crypto/cert/~Common~{{ item.name | regex_replace('^/Common/', '') | urlencode }}"
+#        url: "https://{{ f5_host }}/mgmt/tm/sys/crypto/cert/~Common~{{ item.name | regex_replace('^/Common/', '') | urlencode }}"
+        url: "https://{{ f5_host }}/mgmt/tm/sys/file/ssl-cert/~Common~{{ item.name | regex_replace('^/Common/', '') | urlencode }}"
         method: GET
         user: "{{ f5_user }}"
         password: "{{ f5_password }}"
